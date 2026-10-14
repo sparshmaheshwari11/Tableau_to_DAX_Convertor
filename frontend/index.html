@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f7f8ff" />
+  <title>FormulaFlow — Tableau to DAX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="FormulaFlow home">
+      <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 23.5 12 16l5 4 10-12"/><path d="M20 8h7v7"/><circle cx="5" cy="23.5" r="1.5"/><circle cx="12" cy="16" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg></span>
+      <span>Formula<span class="brand-accent">Flow</span><small>TABLEAU → DAX</small></span>
+    </a>
+    <div class="topbar-right"><span class="status-dot"></span><span id="engineStatus">Local engine ready</span><a class="github-link" href="#how-it-works">How it works <span>↗</span></a></div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero">
+      <div class="eyebrow"><span class="sparkle">✳</span> SMART EXPRESSION CONVERTER</div>
+      <h1>From Tableau logic<br />to <span class="gradient-text">DAX, effortlessly.</span></h1>
+      <p class="hero-copy">Translate calculated fields without losing the logic or your field names. Simple expressions stay local; Gemini steps in only when the logic gets complex.</p>
+      <div class="hero-pills"><span><i class="pill-icon purple">⌘</i> Local-first conversion</span><span><i class="pill-icon orange">✦</i> AI when needed</span><span><i class="pill-icon green">✓</i> Identifier checks</span></div>
+    </section>
+
+    <section class="workspace-card" aria-label="Expression converter">
+      <div class="workspace-head"><div><span class="step-label">01 / CONVERT</span><h2>Expression workspace</h2></div><button id="clearBtn" class="text-button" type="button">↻ Reset workspace</button></div>
+      <div class="context-grid">
+        <label class="field-label">Calculated field name <span class="optional">OPTIONAL</span><input id="fieldName" type="text" placeholder="e.g. Average Order Value" maxlength="160" /></label>
+        <label class="field-label">Target table name <span class="optional">OPTIONAL</span><input id="tableName" type="text" placeholder="e.g. Sales_Data" maxlength="160" /></label>
+      </div>
+      <div class="editor-grid">
+        <div class="editor-panel source-panel">
+          <div class="editor-header"><div class="editor-title"><span class="language-icon tableau-icon">T</span><div><strong>Tableau expression</strong><small>Paste your calculated field</small></div></div><span class="language-tag tableau-tag">TABLEAU</span></div>
+          <textarea id="tableauExpression" spellcheck="false" placeholder="IF SUM([Sales]) > 1000 THEN 'High' ELSE 'Standard' END"></textarea>
+          <div class="editor-footer"><span id="charCount">0 characters</span><button id="exampleBtn" class="mini-button" type="button">Try an example ↗</button></div>
+        </div>
+        <div class="middle-arrow" aria-hidden="true"><span>→</span></div>
+        <div class="editor-panel output-panel">
+          <div class="editor-header"><div class="editor-title"><span class="language-icon dax-icon">D</span><div><strong>DAX expression</strong><small>Your translated calculation</small></div></div><span class="language-tag dax-tag">DAX</span></div>
+          <textarea id="daxExpression" spellcheck="false" placeholder="Your DAX expression will appear here…" readonly></textarea>
+          <div class="editor-footer"><span id="resultStatus">Waiting for expression</span><button id="copyBtn" class="mini-button" type="button" disabled>▢ Copy DAX</button></div>
+        </div>
+      </div>
+      <div class="advanced-toggle-row"><label class="toggle-label"><input type="checkbox" id="useAi" checked /><span class="toggle-track"><span></span></span><span><strong>Use Gemini for complex expressions</strong><small>Simple conversions never call the API.</small></span></label><button class="advanced-button" id="advancedBtn" type="button" aria-expanded="false">+ Model context</button></div>
+      <div id="advancedFields" class="advanced-fields hidden"><label class="field-label">Power BI model context <span class="optional">OPTIONAL</span><textarea id="modelContext" rows="3" placeholder="Example: Sales_Data[OrderDate] relates to Date[Date]. Sales_Data is the sales fact table."></textarea></label><p class="context-hint">Add relationships, granularity, or measure details if the calculation depends on them.</p></div>
+      <div class="action-row"><div class="privacy-note"><span>◈</span> Your Gemini key stays on the server</div><button id="convertBtn" class="primary-button" type="button"><span class="button-spark">✦</span> Convert to DAX <span class="button-arrow">→</span></button></div>
+      <div id="errorBanner" class="error-banner hidden" role="alert"></div>
+    </section>
+
+    <section id="resultDetails" class="result-details hidden">
+      <div class="result-title-row"><div><span class="step-label">02 / REVIEW</span><h2>Conversion notes</h2></div><span id="methodBadge" class="method-badge">LOCAL RULES</span></div>
+      <p id="explanationText" class="explanation-text"></p><div id="warningsList" class="warnings-list"></div>
+    </section>
+
+    <section class="bulk-card">
+      <div class="bulk-icon">⇧</div><div class="bulk-copy"><span class="step-label">BULK MODE</span><h3>Have a whole workbook of formulas?</h3><p>Upload an Excel or CSV file and convert multiple expressions in one pass.</p></div>
+      <button id="bulkToggle" class="secondary-button" type="button">Upload expressions <span>→</span></button>
+      <div id="bulkPanel" class="bulk-panel hidden">
+        <div class="upload-zone" id="dropZone"><input id="bulkFile" type="file" accept=".xlsx,.xls,.csv" hidden /><div class="upload-symbol">↑</div><strong>Drop your Excel or CSV here</strong><span>or <button id="browseBtn" class="inline-link" type="button">browse files</button> · max 10 MB</span><span id="fileName" class="file-name"></span></div>
+        <div class="bulk-options"><label class="field-label">Expression column<input id="expressionColumn" type="text" placeholder="Blank = first column" /></label><label class="field-label">Target table<input id="bulkTableName" type="text" placeholder="Optional table name" /></label></div>
+        <label class="bulk-ai"><input id="bulkUseAi" type="checkbox" /> Allow Gemini for complex rows (uses API quota)</label>
+        <button id="bulkConvertBtn" class="primary-button full-button" type="button" disabled>Convert file <span>→</span></button><div id="bulkMessage" class="bulk-message" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="how-section"><div class="section-heading"><span class="step-label">BUILT FOR REAL-WORLD MIGRATIONS</span><h2>Careful by design. <span class="gradient-text">Efficient by default.</span></h2></div><div class="benefit-grid"><article class="benefit-card"><span class="benefit-icon lilac">⌘</span><h3>Rules before AI</h3><p>Common function mappings are handled locally to keep conversions fast and reduce unnecessary API calls.</p></article><article class="benefit-card"><span class="benefit-icon peach">✳</span><h3>Context-aware fallback</h3><p>Complex calculations can use Gemini with your optional model context and explicit preservation instructions.</p></article><article class="benefit-card"><span class="benefit-icon mint">✓</span><h3>Honest warnings</h3><p>Get a heads-up when table context is missing or a calculation may need semantic review in Power BI.</p></article></div></section>
+    <footer><a class="footer-brand" href="/">FormulaFlow</a><span>Made for better analytics migrations <span class="footer-heart">♥</span></span><span class="version-label">EARLY ACCESS · V0.1</span></footer>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
